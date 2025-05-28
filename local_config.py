@@ -1,0 +1,10 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+mongo_db_uri = os.getenv("DATABASE_URL")
+
+MP_TOKEN = os.getenv("MP_TOKEN")
+MP_XSIGNATURE = os.getenv("MP_XSIGNATURE")
+MP_CLIENT_SECRET = os.getenv("MP_CLIENT_SECRET")
+PASS_GOOGLE=os.getenv("PASS_GOOGLE")

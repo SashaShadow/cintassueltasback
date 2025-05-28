@@ -19,9 +19,9 @@ async def admin_login(admin_credentials: AdminSignIn = Body(...)):
         if password:
             return sign_jwt(admin_credentials.username)
 
-        raise HTTPException(status_code=403, detail="Incorrect email or password")
+        raise HTTPException(status_code=403, detail="Contraseña o email incorrectos")
 
-    raise HTTPException(status_code=403, detail="Incorrect email or password")
+    raise HTTPException(status_code=403, detail="Contraseña o email incorrectos")
 
 
 @router.post("", response_model=AdminData)

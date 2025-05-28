@@ -1,7 +1,17 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, Any
 
-class UpdateStudentModel(BaseModel):
+class TicketCreate(BaseModel):
+    nombre: str
+    email: EmailStr
+    fecha: str
+    cantidad: int
+    id_fecha: str
+
+    class Settings:
+        name = "tickets"
+
+class UpdateTicketModel(BaseModel):
     fullname: Optional[str]
     email: Optional[EmailStr]
     course_of_study: Optional[str]
@@ -9,7 +19,7 @@ class UpdateStudentModel(BaseModel):
     gpa: Optional[float]
 
     class Collection:
-        name = "student"
+        name = "ticket"
 
     class Config:
         json_schema_extra = {
