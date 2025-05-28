@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     MP_TOKEN: Optional[str] = None
     MP_CLIENT_SECRET:  Optional[str] = None
     PASS_GOOGLE: Optional[str] = None
+    SECRET_USER: Optional[str] = None
+    SECRET_PASS: Optional[str] = None
+
     # JWT
     secret_key: str = "secret"
     algorithm: str = "HS256"

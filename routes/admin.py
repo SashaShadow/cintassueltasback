@@ -1,15 +1,28 @@
-from fastapi import Body, APIRouter, HTTPException
+from fastapi import Body, APIRouter, HTTPException, Depends, status
 from passlib.context import CryptContext
-
 from auth.jwt_handler import sign_jwt
 from database.database import add_admin
 from models.admin import Admin
 from schemas.admin import AdminData, AdminSignIn
-
-router = APIRouter()
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
+from local_config import *
 
 hash_helper = CryptContext(schemes=["bcrypt"])
 
+security = HTTPBasic()
+
+def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, SECRET_USER)
+    correct_password = secrets.compare_digest(credentials.password, SECRET_PASS)
+    if not (correct_username and correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    
+router = APIRouter()
 
 @router.post("/login")
 async def admin_login(admin_credentials: AdminSignIn = Body(...)):
@@ -25,7 +38,7 @@ async def admin_login(admin_credentials: AdminSignIn = Body(...)):
 
 
 @router.post("", response_model=AdminData)
-async def admin_signup(admin: Admin = Body(...)):
+async def admin_signup(admin: Admin = Body(...), credentials: HTTPBasicCredentials = Depends(verify_admin)):
     admin_exists = await Admin.find_one(Admin.email == admin.email)
     if admin_exists:
         raise HTTPException(
