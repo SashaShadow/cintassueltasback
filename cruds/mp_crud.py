@@ -189,9 +189,9 @@ class MpClass():
                 }
             ],
             "back_urls": {
-                "success": "https://cintassueltas.com/success",
-                "failure": "https://cintassueltas.com/error",
-                "pending": "https://cintassueltas.com/pend"
+                "success": "https://cintasueltas.vercel.app/success",
+                "failure": "https://cintasueltas.vercel.app/error",
+                "pending": "https://cintasueltas.vercel.app/pend"
             },
             "auto_return": "approved"
             }
