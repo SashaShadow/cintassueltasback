@@ -246,7 +246,9 @@ class MpClass():
 
         if modificar_estado:
             modificarAccion = collection.update_one(query, nuevoEstado)
-            self.enviarMail(ticket=estado_anterior_pago, fecha=fecha)
+            pago_act = collection.find_one(query)
+
+            self.enviarMail(ticket=pago_act, fecha=fecha)
 
             if modificarAccion.modified_count > 0:
                 return {"qr_code": qr_base64, "ticket": ticket_copy, "fecha": fecha}
