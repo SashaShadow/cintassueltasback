@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
 
 from database.database import *
 from models.fecha import Fecha
 from schemas.fecha import Response, UpdateFechaModel
+from auth.jwt_bearer import JWTBearer
 
+token_listener = JWTBearer()
 
 router = APIRouter()
 
@@ -41,7 +43,7 @@ async def get_fecha_data(id: PydanticObjectId):
     response_description="fecha data added into the database",
     response_model=Response,
 )
-async def add_fecha_data(fecha: Fecha = Body(...)):
+async def add_fecha_data(fecha: Fecha = Body(...), token: str = Depends(token_listener)):
     new_fecha = await add_fecha(fecha)
     return {
         "status_code": 200,
@@ -51,7 +53,7 @@ async def add_fecha_data(fecha: Fecha = Body(...)):
     }
 
 @router.put("/{id}", response_model=Response)
-async def update_fecha(id: PydanticObjectId, req: UpdateFechaModel = Body(...)):
+async def update_fecha(id: PydanticObjectId, req: UpdateFechaModel = Body(...), token: str = Depends(token_listener)):
     updated_fecha = await update_fecha_data(id, req.dict())
     if updated_fecha:
         return {

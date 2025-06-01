@@ -9,6 +9,8 @@ class UpdateFechaModel(BaseModel):
     imagen_url: Optional[str]
     activa: Optional[bool]
     descripcion: Optional[str]
+    fecha: Optional[str]
+    hora: Optional[str]
 
     class Collection:
         name = "fecha"
@@ -22,7 +24,9 @@ class UpdateFechaModel(BaseModel):
                 "nombre_lugar": "Casa de Sasha",
                 "imagen_url": "",
                 "activa": True,
-                "descripcion": "festival numero 6 de CS"
+                "descripcion": "festival numero 6 de CS",
+                "fecha": "7/6/2025",
+                "hora": "20:00",
             }
         }
 

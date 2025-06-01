@@ -17,7 +17,6 @@ async def add_admin(new_admin: Admin) -> Admin:
     admin = await new_admin.create()
     return admin
 
-
 async def retrieve_tickets() -> List[Ticket]:
     tickets = await ticket_collection.all().to_list()
     return tickets
@@ -47,12 +46,8 @@ async def update_fecha_data(id: PydanticObjectId, data: dict) -> Union[bool, Fec
         return fecha
     return False
 
-#Aca deberia tambien guardarse el id de preferencia, devolverle a la persona el link a pagar
-#y luego notificar y actualizar el estado del ticket
-#en la notificacion tendria que ver si puedo mandar un mail con la informacion, el id y algun QR
 async def add_ticket(new_ticket: TicketCreate) -> Ticket:
     fecha = await retrieve_fecha(new_ticket.id_fecha)
-    print(fecha)
 
     external_reference = str(uuid.uuid4())
 
@@ -65,12 +60,11 @@ async def add_ticket(new_ticket: TicketCreate) -> Ticket:
         id_pago = ""
     )
 
-    #generar aca preferencia de mp trayendolo del mp_crud y ver si puedo agarrar la preference id y guardarla tambien en el ticket
     mp = MpClass(quantity=new_ticket.cantidad, valor_unidad=int(fecha.valor), fecha_desc=fecha.nombre_evento, external_reference=external_reference)
     preferencia = mp.generarPreferencia()
 
     ticket.id_preferencia = preferencia["id"]
-    ticket.id_pago = "test"
+    ticket.id_pago = ""
 
     ticket = await ticket.create()
     return preferencia["init_point"]
@@ -80,7 +74,16 @@ async def retrieve_ticket(id: PydanticObjectId) -> Ticket:
     ticket = await ticket_collection.get(id)
     if ticket:
         return ticket
-
+    
+async def retrieve_tickets_by_fecha(id: str) -> Ticket:
+    query = {"id_fecha": id, "estado_pago": "approved"}
+    print(query)
+    tickets = await ticket_collection.find(query).to_list()
+    print(tickets)
+    if tickets:
+        return tickets
+    else:
+        return []
 
 async def delete_ticket(id: PydanticObjectId) -> bool:
     ticket = await ticket_collection.get(id)

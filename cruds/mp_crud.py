@@ -17,6 +17,8 @@ from reportlab.lib.utils import ImageReader
 from reportlab.lib import colors
 from urllib.request import Request, urlopen
 from bson import ObjectId
+import base64
+from copy import deepcopy
 
 #de prod de mi cuenta de test
 sdk = mercadopago.SDK(MP_TOKEN)
@@ -108,13 +110,13 @@ class MpClass():
         em["To"] = email_receiver
         em["Subject"] = "Cintas Sueltas Fest. Tus tickets"
 
-        qr = qrcode.make(ticket["_id"])
+        qr = qrcode.make(str(ticket["_id"]))
         buffer = io.BytesIO()
         qr.save(buffer, format="PNG")
         buffer.seek(0)
         qr_bytes = buffer.read()
-
-        qr2 = qrcode.make(ticket["_id"])
+        
+        qr2 = qrcode.make(str(ticket["_id"]))
         buffer2 = io.BytesIO()
         qr2.save(buffer2, format="PNG")
         buffer2.seek(0)
@@ -170,7 +172,7 @@ class MpClass():
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
             smtp.login(email_sender, PASS_GOOGLE)
             smtp.sendmail(email_sender, email_receiver, em.as_string())
-
+            
     def generarPreferencia(self):
         preference_data = {
             # 'binary_mode': True,
@@ -187,7 +189,7 @@ class MpClass():
                 }
             ],
             "back_urls": {
-                "success": "https://cintassueltas.com/succ",
+                "success": "https://cintassueltas.com/success",
                 "failure": "https://cintassueltas.com/error",
                 "pending": "https://cintassueltas.com/pend"
             },
@@ -227,20 +229,31 @@ class MpClass():
             modificar_estado = False
         
         query_fecha = {"_id": ObjectId(estado_anterior_pago["id_fecha"])}
-
+                   
         fecha = fechacollec.find_one(query_fecha)
 
+        ticket_copy = deepcopy(estado_anterior_pago)
+        ticket_copy["_id"] = str(estado_anterior_pago["_id"])
+        fecha["_id"] = str(fecha["_id"])
+
+        qr = qrcode.make(ticket_copy["_id"])
+        buffer = io.BytesIO()
+        qr.save(buffer, format="PNG")
+        buffer.seek(0)
+        qr_bytes = buffer.read()
+
+        qr_base64 = base64.b64encode(qr_bytes).decode("utf-8")
+
         if modificar_estado:
-            #mandar mail aca
             modificarAccion = collection.update_one(query, nuevoEstado)
             self.enviarMail(ticket=estado_anterior_pago, fecha=fecha)
 
             if modificarAccion.modified_count > 0:
-                return 'Pago actualizado'
+                return {"qr_code": qr_base64, "ticket": ticket_copy, "fecha": fecha}
             else:
-                return None
+                return {"qr_code": qr_base64, "ticket": ticket_copy, "fecha": fecha}
         else:
-            return None
+            return {"qr_code": qr_base64, "ticket": ticket_copy, "fecha": fecha}
                 
     def notificacion(self):
         try:

@@ -12,6 +12,8 @@ class Fecha(Document):
     imagen_url: str
     activa: bool
     descripcion: str
+    fecha: str
+    hora: str
 
     class Config:
         json_schema_extra = {
@@ -22,7 +24,9 @@ class Fecha(Document):
                 "nombre_lugar": "Casa de Sasha",
                 "imagen_url": "",
                 "activa": True,
-                "descripcion": "festival numero 6 de CS"
+                "descripcion": "festival numero 6 de CS",
+                "fecha": "7/6/2025",
+                "hora": "20:00",
             }
         }
 

@@ -38,6 +38,24 @@ async def get_ticket_data(id: PydanticObjectId):
         "status_code": 404,
         "response_type": "error",
         "description": "ticket doesn't exist",
+        "data": None
+    }
+
+@router.get("/byfecha/{id}", response_description="ticket data retrieved", response_model=Response)
+async def get_ticket_data_by_fecha(id: str):
+    tickets = await retrieve_tickets_by_fecha(id)
+    if tickets:
+        return {
+            "status_code": 200,
+            "response_type": "success",
+            "description": "tickets data retrieved successfully",
+            "data": tickets,
+        }
+    return {
+        "status_code": 404,
+        "response_type": "error",
+        "description": "tickets doesn't exist",
+        "data": None
     }
 
 
@@ -121,7 +139,6 @@ async def recibir_webhook(
         else:
             return JSONResponse(content={"Mensaje": 'Pago no encontrado'}, status_code=200) 
     except Exception as e:
-        print(f"Error capturado: {e}")
         return JSONResponse(
             content={"Mensaje": f"Error interno: {str(e)}"},
             status_code=500
@@ -155,7 +172,6 @@ async def actualizar_pago(external_reference: str, request_body: ReqUpd, db: Mon
             "data": False,
         }
     except Exception as e:
-        print(f"Error capturado: {e}")
         return JSONResponse(
             content={"Mensaje": f"Error interno: {str(e)}"},
             status_code=500
