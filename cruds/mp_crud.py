@@ -179,7 +179,7 @@ class MpClass():
             # "expiration_date_from": yyyy-MM-dd'T'HH:mm:ssz, PENDIENTE DEFINIR LA EXPIRACION
             # "expiration_date_to": yyyy-MM-dd'T'HH:mm:ssz,
             "expires": True,
-            "notification_url": "https://cintassueltas.com/notifi",
+            "notification_url": "https://cintassueltas.onrender.com/tickets/mp-notificacion",
             "external_reference": self.external_reference, 
             "items": [
                 {
