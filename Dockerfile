@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.10.12-slim
 WORKDIR /app
 
 ADD requirements.txt /app/requirements.txt
