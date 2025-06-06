@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     PASS_GOOGLE: Optional[str] = None
     SECRET_USER: Optional[str] = None
     SECRET_PASS: Optional[str] = None
+    MP_XSIGNATURE: Optional[str] = None
 
     # JWT
     secret_key: str = "secret"
