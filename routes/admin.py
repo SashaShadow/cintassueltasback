@@ -1,4 +1,4 @@
-from fastapi import Body, APIRouter, HTTPException, Depends, status
+from fastapi import Body, APIRouter, HTTPException, Depends, status, Request
 from passlib.context import CryptContext
 from auth.jwt_handler import sign_jwt
 from database.database import add_admin
@@ -7,6 +7,10 @@ from schemas.admin import AdminData, AdminSignIn
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
 from local_config import *
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 hash_helper = CryptContext(schemes=["bcrypt"])
 
@@ -25,7 +29,8 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 router = APIRouter()
 
 @router.post("/login")
-async def admin_login(admin_credentials: AdminSignIn = Body(...)):
+@limiter.limit("5/minute")
+async def admin_login(request: Request, admin_credentials: AdminSignIn = Body(...)):
     admin_exists = await Admin.find_one(Admin.email == admin_credentials.username)
     if admin_exists:
         password = hash_helper.verify(admin_credentials.password, admin_exists.password)
@@ -38,7 +43,8 @@ async def admin_login(admin_credentials: AdminSignIn = Body(...)):
 
 
 @router.post("", response_model=AdminData)
-async def admin_signup(admin: Admin = Body(...), credentials: HTTPBasicCredentials = Depends(verify_admin)):
+@limiter.limit("5/minute")
+async def admin_signup(request: Request, admin: Admin = Body(...), credentials: HTTPBasicCredentials = Depends(verify_admin)):
     admin_exists = await Admin.find_one(Admin.email == admin.email)
     if admin_exists:
         raise HTTPException(

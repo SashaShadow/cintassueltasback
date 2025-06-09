@@ -9,6 +9,10 @@ from cruds.mp_crud import MpClass
 from fastapi.responses import JSONResponse # type: ignore
 import urllib.parse
 from typing import Union
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter()
 
@@ -64,7 +68,8 @@ async def get_ticket_data_by_fecha(id: str):
     response_description="ticket data added into the database",
     response_model=Response,
 )
-async def add_ticket_data(ticket: TicketCreate):
+@limiter.limit("5/minute")
+async def add_ticket_data(request: Request, ticket: TicketCreate):
     new_ticket = await add_ticket(ticket)
     return {
         "status_code": 200,
