@@ -6,7 +6,7 @@ from models.admin import Admin
 from models.ticket import Ticket
 from models.fecha import Fecha
 import uuid
-from schemas.ticket import Response, UpdateTicketModel, TicketCreate
+from schemas.ticket import TicketCreate
 from cruds.mp_crud import MpClass
 
 admin_collection = Admin

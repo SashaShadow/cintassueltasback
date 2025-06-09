@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Body, Depends, Request
+from fastapi import APIRouter, Depends, Request
 
 from database.database import *
-from schemas.ticket import Response, UpdateTicketModel, TicketCreate
+from schemas.ticket import Response, TicketCreate
 from pydantic import BaseModel
 from pymongo import MongoClient
 from database.database_mongo import get_mongo_db 
