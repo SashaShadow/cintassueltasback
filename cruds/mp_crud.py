@@ -108,7 +108,7 @@ class MpClass():
         em = EmailMessage()
         em["From"] = email_sender
         em["To"] = email_receiver
-        em["Subject"] = "Cintas Sueltas Fest. Tus tickets"
+        em["Subject"] = "Cintas Sueltas Tickets. Tus entradas."
 
         qr = qrcode.make(str(ticket["_id"]))
         buffer = io.BytesIO()
@@ -144,12 +144,12 @@ class MpClass():
             <p>Importe abonado: ${ticket["importe_total"]}</p>
             <p>ID de transaccion: {ticket["id_pago"]}</p>
 
-            <p style="margin-top: 30px; font-size: 12px; color: gray;">Gracias por ser parte del fest 🎶</p>
+            <p style="margin-top: 30px; font-size: 12px; color: gray;">Gracias por ser parte de la fecha 🎶</p>
         </body>
         </html>
         """
 
-        filename=f'TicketCintasSueltasFest{ticket["_id"]}.pdf'
+        filename=f'TicketCintasSueltas{ticket["_id"]}.pdf'
 
         em.set_content(html)
         em.add_alternative(html, subtype='html')
@@ -179,7 +179,7 @@ class MpClass():
             # "expiration_date_from": yyyy-MM-dd'T'HH:mm:ssz, PENDIENTE DEFINIR LA EXPIRACION
             # "expiration_date_to": yyyy-MM-dd'T'HH:mm:ssz,
             "expires": True,
-            "notification_url": "https://cintassueltas.onrender.com/tickets/mp-notificacion",
+            "notification_url": "https://web-production-35ede.up.railway.app/tickets/mp-notificacion",
             "external_reference": self.external_reference, 
             "items": [
                 {
@@ -189,9 +189,9 @@ class MpClass():
                 }
             ],
             "back_urls": {
-                "success": "https://cintasueltas.vercel.app/success",
-                "failure": "https://cintasueltas.vercel.app/error",
-                "pending": "https://cintasueltas.vercel.app/pend"
+                "success": "https://www.cintassueltas.com.ar/success",
+                "failure": "https://www.cintassueltas.com.ar/error",
+                "pending": "https://www.cintassueltas.com.ar/pend"
             },
             "auto_return": "approved"
             }
