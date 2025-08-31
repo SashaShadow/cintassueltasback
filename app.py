@@ -10,14 +10,27 @@ from config.config import initiate_database
 from routes.admin import router as AdminRouter
 from routes.ticket import router as TicketRouter
 from routes.fecha import router as FechaRouter
+from routes.videos import router as VideosRouter
+
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from contextlib import asynccontextmanager
+
+async def lifespan(app: FastAPI):
+    try:
+        print("Iniciando base de datos...")
+        await initiate_database()
+        yield  # Aquí FastAPI continúa con la ejecución normal de la app
+    except Exception as e:
+        print(f"Error al iniciar la base de datos: {e}")
+        raise e  # Volver a lanzar la excepción para detener la app
 
 app = FastAPI(
     docs_url=None,
     redoc_url=None,
-    openapi_url="/openapi.json"  # Swagger lo necesita aunque luego lo protejas
+    openapi_url="/openapi.json",
+    lifespan=lifespan
 )
 
 limiter = Limiter(key_func=get_remote_address)
@@ -52,14 +65,15 @@ app.add_middleware(
 
 token_listener = JWTBearer()
 
-@app.on_event("startup")
-async def start_database():
-    await initiate_database()
+# @app.on_event("startup")
+# async def start_database():
+#     await initiate_database()
 
 
 app.include_router(AdminRouter, tags=["Administrator"], prefix="/admin")
 app.include_router(TicketRouter,tags=["Tickets"],prefix="/tickets",)
 app.include_router(FechaRouter,tags=["Fechas"],prefix="/fechas",)
+app.include_router(VideosRouter,tags=["Videos"],prefix="/videos",)
 
 @app.get("/docs", include_in_schema=False)
 def custom_swagger_ui(credentials: HTTPBasicCredentials = Depends(verify_docs_user)):

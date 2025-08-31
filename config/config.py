@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     SECRET_USER: Optional[str] = None
     SECRET_PASS: Optional[str] = None
     MP_XSIGNATURE: Optional[str] = None
+    YOUTUBE_API_KEY: Optional[str] = None
+    CHANNEL_ID: Optional[str] = None
 
     # JWT
     secret_key: str = "secret"

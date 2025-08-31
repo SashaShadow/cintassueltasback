@@ -283,6 +283,7 @@ class MpClass():
             return JSONResponse(content={"Mensaje": str(e)}, status_code=400)
         
     def verificarToken(self):
+        #quizas aca posibilidad de buscar a que organizador pertenece la notificacion y usar ese token etc
         hmac_obj = hmac.new(MP_CLIENT_SECRET.encode(), msg=self.manifest.encode(), digestmod=hashlib.sha256)
 
         sha = hmac_obj.hexdigest()
