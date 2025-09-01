@@ -24,3 +24,27 @@ async def get_videos(limit):
         "data": videos_data,
     }
 
+@router.get("/playlists/{limit}", response_description="Playlists del canal")
+async def get_playlists(limit: int = 10):
+
+    url = f"https://www.googleapis.com/youtube/v3/playlists?part=snippet&channelId={CHANNEL_ID}&maxResults={limit}&key={YOUTUBE_API_KEY}"
+    response = requests.get(url)
+    data = response.json()
+    return {
+        "status_code": 200,
+        "response_type": "success",
+        "description": "Playlists del canal obtenidas exitosamente",
+        "data": data,
+    }
+
+@router.get("/playlist/{playlist_id}/{limit}", response_description="Videos de una playlist")
+async def get_videos_from_playlist(playlist_id: str, limit: int = 10):
+    url = f"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={playlist_id}&maxResults={limit}&order=date&key={YOUTUBE_API_KEY}"
+    response = requests.get(url)
+    data = response.json()
+    return {
+        "status_code": 200,
+        "response_type": "success",
+        "description": f"Videos de la playlist {playlist_id} obtenidos exitosamente",
+        "data": data,
+    }
