@@ -10,9 +10,9 @@ token_listener = JWTBearer()
 router = APIRouter()
 
 
-@router.get("/", response_description="Videos de YouTube retrieved")
-async def get_videos():
-    url_videos = f"https://www.googleapis.com/youtube/v3/search?part=snippet&channelId={CHANNEL_ID}&type=video&maxResults=50&key={YOUTUBE_API_KEY}"
+@router.get("/{limit}", response_description="Videos de YouTube retrieved")
+async def get_videos(limit):
+    url_videos = f"https://www.googleapis.com/youtube/v3/search?part=snippet&channelId={CHANNEL_ID}&type=video&maxResults={limit}&order=date&key={YOUTUBE_API_KEY}"
 
     videos = requests.get(url_videos)
     
