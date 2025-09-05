@@ -5,7 +5,6 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic_settings import BaseSettings
 import models as models
 
-
 class Settings(BaseSettings):
     # database configurations
     DATABASE_URL: Optional[str] = None
@@ -17,6 +16,7 @@ class Settings(BaseSettings):
     MP_XSIGNATURE: Optional[str] = None
     YOUTUBE_API_KEY: Optional[str] = None
     CHANNEL_ID: Optional[str] = None
+    PASS_RESEND:Optional[str] = None
 
     # JWT
     secret_key: str = "secret"

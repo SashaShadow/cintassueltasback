@@ -19,6 +19,7 @@ from urllib.request import Request, urlopen
 from bson import ObjectId
 import base64
 from copy import deepcopy
+import httpx
 
 #de prod de mi cuenta de test
 sdk = mercadopago.SDK(MP_TOKEN)
@@ -133,13 +134,30 @@ class MpClass():
 
         qr_cid = make_msgid(domain="smtp.gmail.com")[1:-1]  
 
+        # html = f"""
+        # <html>
+        # <body style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+        #     <img src="{logo_url}" alt="Logo" style="width: 150px; margin-bottom: 20px;">
+        #     <h2>¡Acá están tus tickets para el <strong>{fecha["nombre_evento"]}</strong>!</h2>
+        #     <p>Mostrá este código QR al ingresar al evento.</p>
+        #     <img src="cid:{qr_cid}" alt="Ticket para el {fecha["nombre_evento"]}" style="margin-top: 20px; width: 200px;">
+        #     <p>Tu nombre: {ticket["nombre"]}</p>
+        #     <p>Cantidad de entradas: {ticket["cantidad"]}</p>
+        #     <p>Importe abonado: ${ticket["importe_total"]}</p>
+        #     <p>ID de transaccion: {ticket["id_pago"]}</p>
+
+        #     <p style="margin-top: 30px; font-size: 12px; color: gray;">Gracias por ser parte de la fecha 🎶</p>
+        # </body>
+        # </html>
+        # """
+
         html = f"""
         <html>
         <body style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
             <img src="{logo_url}" alt="Logo" style="width: 150px; margin-bottom: 20px;">
             <h2>¡Acá están tus tickets para el <strong>{fecha["nombre_evento"]}</strong>!</h2>
             <p>Mostrá este código QR al ingresar al evento.</p>
-            <img src="cid:{qr_cid}" alt="Ticket para el {fecha["nombre_evento"]}" style="margin-top: 20px; width: 200px;">
+            <img src="data:image/png;base64,{base64.b64encode(buffer2.read()).decode()}" alt="QR Code" style="margin-top: 20px; width: 200px;">
             <p>Tu nombre: {ticket["nombre"]}</p>
             <p>Cantidad de entradas: {ticket["cantidad"]}</p>
             <p>Importe abonado: ${ticket["importe_total"]}</p>
@@ -150,29 +168,60 @@ class MpClass():
         </html>
         """
 
-        filename=f'TicketCintasSueltas{ticket["_id"]}.pdf'
+        filename = f'TicketCintasSueltas{ticket["_id"]}.pdf'
+        pdf_b64 = base64.b64encode(pdf_data).decode()
 
-        em.set_content(html)
-        em.add_alternative(html, subtype='html')
-        em.add_attachment(
-            pdf_data,
-            maintype='application',
-            subtype='pdf',
-            filename=filename
-        )
+        # --- Armar payload para Resend API ---
+        data = {
+            "from": f"Cintas Sueltas <onboarding@resend.dev>",  # Cambiar si usás dominio propio
+            "to": [email_receiver],
+            "subject": "Cintas Sueltas Tickets. Tus entradas.",
+            "html": html,
+            "attachments": [
+                {
+                    "filename": filename,
+                    "content": pdf_b64,
+                    "type": "application/pdf"
+                }
+            ]
+        }
 
-        em.get_payload()[1].add_related(
-            buffer2.read(),
-            maintype='image',
-            subtype='png',
-            cid=qr_cid
-        )
+        # --- Headers y llamada a la API ---
+        headers = {
+            "Authorization": f"Bearer {PASS_RESEND}",  # Reemplazá con tu API Key segura
+            "Content-Type": "application/json"
+        }
 
-        context = ssl.create_default_context()
+        try:
+            response = httpx.post("https://api.resend.com/emails", json=data, headers=headers)
+            response.raise_for_status()
+            print("✅ Correo enviado correctamente")
+        except Exception as e:
+            print("❌ Error al enviar correo:", str(e))
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
-            smtp.login(email_sender, PASS_GOOGLE)
-            smtp.sendmail(email_sender, email_receiver, em.as_string())
+        # filename=f'TicketCintasSueltas{ticket["_id"]}.pdf'
+
+        # em.set_content(html)
+        # em.add_alternative(html, subtype='html')
+        # em.add_attachment(
+        #     pdf_data,
+        #     maintype='application',
+        #     subtype='pdf',
+        #     filename=filename
+        # )
+
+        # em.get_payload()[1].add_related(
+        #     buffer2.read(),
+        #     maintype='image',
+        #     subtype='png',
+        #     cid=qr_cid
+        # )
+
+        # context = ssl.create_default_context()
+
+        # with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
+        #     smtp.login(email_sender, PASS_GOOGLE)
+        #     smtp.sendmail(email_sender, email_receiver, em.as_string())
             
     def generarPreferencia(self):
         preference_data = {
