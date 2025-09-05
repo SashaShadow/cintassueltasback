@@ -181,3 +181,25 @@ async def actualizar_pago(external_reference: str, request_body: ReqUpd, db: Mon
             content={"Mensaje": f"Error interno: {str(e)}"},
             status_code=500
         )
+    
+
+@router.get("/reenviomail/{external_reference}", response_description="resend email", response_model=Response)
+async def reenviar_mail(external_reference: str, db: MongoClient = Depends(get_mongo_db)):
+
+    mp = MpClass(external_reference=external_reference, db=db)
+    mail_reenviado = mp.reenviarMail()
+
+    if mail_reenviado:
+        return {
+            "status_code": 200,
+            "response_type": "success",
+            "description": "Mail reenviado",
+            "data": mail_reenviado,
+        }
+    
+    return {
+        "status_code": 404,
+        "response_type": "error",
+        "description": "An error occurred",
+        "data": False,
+    }

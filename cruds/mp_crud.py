@@ -25,7 +25,7 @@ sdk = mercadopago.SDK(MP_TOKEN)
 
 class MpClass():
     def __init__(self, manifest='', id_pago='', estado_pago='', hash='', db=Database, external_reference="", quantity=0, 
-                 valor_unidad=0, fecha_desc="", origen=None):
+                 valor_unidad=0, fecha_desc="", origen=None, id_fecha=''):
         self.manifest = manifest
         self.id_pago = id_pago
         self.estado_pago = estado_pago
@@ -36,6 +36,7 @@ class MpClass():
         self.valor_unidad = valor_unidad
         self.fecha_desc = fecha_desc
         self.origen = origen
+        self.id_fecha = id_fecha
 
     def generar_pdf_con_qr(self, qr_image_bytes, logo_url, texto_final):
         buffer = io.BytesIO()
@@ -102,7 +103,7 @@ class MpClass():
         return buffer.read()
     
     def enviarMail(self, ticket, fecha):
-        email_sender="cintassueltastickets@gmail.com"
+        email_sender="csueltastickets@gmail.com"
         email_receiver=ticket["email"]
 
         em = EmailMessage()
@@ -291,3 +292,21 @@ class MpClass():
             return True
         else:
             return False
+        
+    def reenviarMail(self):
+        try:
+            collection = self.db.ticket
+            fechacollec = self.db.fecha
+
+            query = { "external_reference": self.external_reference }
+            pago_act = collection.find_one(query)
+
+            query_fecha = {"_id": ObjectId(pago_act["id_fecha"])}
+            fecha = fechacollec.find_one(query_fecha)
+
+            self.enviarMail(ticket=pago_act, fecha=fecha)
+
+            return "Correo reenviado correctamente"
+
+        except Exception as e:
+            return {"Mensaje": str(e)}
