@@ -171,9 +171,8 @@ class MpClass():
         filename = f'TicketCintasSueltas{ticket["_id"]}.pdf'
         pdf_b64 = base64.b64encode(pdf_data).decode()
 
-        # --- Armar payload para Resend API ---
         data = {
-            "from": f"Cintas Sueltas <onboarding@resend.dev>",  # Cambiar si usás dominio propio
+            "from": f"Cintas Sueltas <tickets@cintassueltas.com.ar>", 
             "to": [email_receiver],
             "subject": "Cintas Sueltas Tickets. Tus entradas.",
             "html": html,
@@ -186,7 +185,6 @@ class MpClass():
             ]
         }
 
-        # --- Headers y llamada a la API ---
         headers = {
             "Authorization": f"Bearer {PASS_RESEND}",  # Reemplazá con tu API Key segura
             "Content-Type": "application/json"
