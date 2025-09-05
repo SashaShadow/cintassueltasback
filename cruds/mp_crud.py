@@ -102,7 +102,7 @@ class MpClass():
         return buffer.read()
     
     def enviarMail(self, ticket, fecha):
-        email_sender="csueltastickets@gmail.com"
+        email_sender="cintassueltastickets@gmail.com"
         email_receiver=ticket["email"]
 
         em = EmailMessage()
