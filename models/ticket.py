@@ -2,7 +2,9 @@ from typing import Optional, Any
 
 from beanie import Document
 from pydantic import BaseModel, EmailStr
+from local_config import *
 
+collect_name = "ticket_test" if AMBIENTE == "DESARROLLO" else "ticket"
 
 class Ticket(Document):
     nombre: str
@@ -28,4 +30,4 @@ class Ticket(Document):
         }
 
     class Settings:
-        name = "ticket"
+        name = collect_name

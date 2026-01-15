@@ -1,5 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional, Any
+from local_config import *
+
+collect_name = "fecha_test" if AMBIENTE == "DESARROLLO" else "fecha"
 
 class UpdateFechaModel(BaseModel):
     valor: Optional[str]
@@ -11,9 +14,10 @@ class UpdateFechaModel(BaseModel):
     descripcion: Optional[str]
     fecha: Optional[str]
     hora: Optional[str]
+    doble: Optional[bool]
 
     class Collection:
-        name = "fecha"
+        name = collect_name
 
     class Config:
         json_schema_extra = {
@@ -27,6 +31,7 @@ class UpdateFechaModel(BaseModel):
                 "descripcion": "festival numero 6 de CS",
                 "fecha": "7/6/2025",
                 "hora": "20:00",
+                "doble": False
             }
         }
 

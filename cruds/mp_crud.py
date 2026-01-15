@@ -6,8 +6,6 @@ import requests
 import hashlib, hmac
 import mercadopago
 from email.message import EmailMessage
-import ssl
-import smtplib
 import qrcode
 import io
 from email.utils import make_msgid
@@ -22,11 +20,10 @@ from copy import deepcopy
 import httpx
 
 #de prod de mi cuenta de test
-sdk = mercadopago.SDK(MP_TOKEN)
 
 class MpClass():
     def __init__(self, manifest='', id_pago='', estado_pago='', hash='', db=Database, external_reference="", quantity=0, 
-                 valor_unidad=0, fecha_desc="", origen=None, id_fecha=''):
+                 valor_unidad=0, fecha_desc="", origen=None, id_fecha='', mp_token=MP_TOKEN, client_secret=MP_CLIENT_SECRET, pago={}):
         self.manifest = manifest
         self.id_pago = id_pago
         self.estado_pago = estado_pago
@@ -38,6 +35,14 @@ class MpClass():
         self.fecha_desc = fecha_desc
         self.origen = origen
         self.id_fecha = id_fecha
+        self.mp_token = mp_token
+        self.client_secret = client_secret
+        self.pago = pago
+
+    def getSdk(self):
+        sdk = mercadopago.SDK(self.mp_token)
+
+        return sdk
 
     def generar_pdf_con_qr(self, qr_image_bytes, logo_url, texto_final):
         buffer = io.BytesIO()
@@ -132,25 +137,6 @@ class MpClass():
         
         pdf_data = self.generar_pdf_con_qr(qr_image_bytes=qr_bytes, logo_url=logo_url, texto_final=texto_final)
 
-        qr_cid = make_msgid(domain="smtp.gmail.com")[1:-1]  
-
-        # html = f"""
-        # <html>
-        # <body style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
-        #     <img src="{logo_url}" alt="Logo" style="width: 150px; margin-bottom: 20px;">
-        #     <h2>¡Acá están tus tickets para el <strong>{fecha["nombre_evento"]}</strong>!</h2>
-        #     <p>Mostrá este código QR al ingresar al evento.</p>
-        #     <img src="cid:{qr_cid}" alt="Ticket para el {fecha["nombre_evento"]}" style="margin-top: 20px; width: 200px;">
-        #     <p>Tu nombre: {ticket["nombre"]}</p>
-        #     <p>Cantidad de entradas: {ticket["cantidad"]}</p>
-        #     <p>Importe abonado: ${ticket["importe_total"]}</p>
-        #     <p>ID de transaccion: {ticket["id_pago"]}</p>
-
-        #     <p style="margin-top: 30px; font-size: 12px; color: gray;">Gracias por ser parte de la fecha 🎶</p>
-        # </body>
-        # </html>
-        # """
-
         html = f"""
         <html>
         <body style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
@@ -196,36 +182,9 @@ class MpClass():
             print("✅ Correo enviado correctamente")
         except Exception as e:
             print("❌ Error al enviar correo:", str(e))
-
-        # filename=f'TicketCintasSueltas{ticket["_id"]}.pdf'
-
-        # em.set_content(html)
-        # em.add_alternative(html, subtype='html')
-        # em.add_attachment(
-        #     pdf_data,
-        #     maintype='application',
-        #     subtype='pdf',
-        #     filename=filename
-        # )
-
-        # em.get_payload()[1].add_related(
-        #     buffer2.read(),
-        #     maintype='image',
-        #     subtype='png',
-        #     cid=qr_cid
-        # )
-
-        # context = ssl.create_default_context()
-
-        # with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
-        #     smtp.login(email_sender, PASS_GOOGLE)
-        #     smtp.sendmail(email_sender, email_receiver, em.as_string())
             
     def generarPreferencia(self):
         preference_data = {
-            # 'binary_mode': True,
-            # "expiration_date_from": yyyy-MM-dd'T'HH:mm:ssz, PENDIENTE DEFINIR LA EXPIRACION
-            # "expiration_date_to": yyyy-MM-dd'T'HH:mm:ssz,
             "expires": True,
             "notification_url": "https://web-production-35ede.up.railway.app/tickets/mp-notificacion",
             "external_reference": self.external_reference, 
@@ -243,21 +202,23 @@ class MpClass():
             },
             "auto_return": "approved"
             }
-        preference_response = sdk.preference().create(preference_data)
+        preference_response = self.getSdk().preference().create(preference_data)
         preference = preference_response["response"]
         
         return preference
-    
 
     def modificarEstadoPago(self):
         modificar_estado = True
         query = { "external_reference": self.external_reference }
 
-        collection = self.db.ticket
-        fechacollec = self.db.fecha
+        collect_name_ticket = "ticket_test" if AMBIENTE == "DESARROLLO" else "ticket"
+        collect_name_fecha = "fecha_test" if AMBIENTE == "DESARROLLO" else "fecha"
+
+        collection = self.db[collect_name_ticket]
+        fechacollec = self.db[collect_name_fecha]
 
         if self.origen:
-            header = {"Authorization": "Bearer " + MP_TOKEN}
+            header = {"Authorization": "Bearer " + self.mp_token}
             url = "https://api.mercadopago.com/v1/payments/"
 
             pago_call = requests.get(f"{url}{self.id_pago}", headers=header)
@@ -307,7 +268,7 @@ class MpClass():
                 
     def notificacion(self):
         try:
-            header = {"Authorization": "Bearer " + MP_TOKEN}
+            header = {"Authorization": "Bearer " + self.mp_token}
             url = "https://api.mercadopago.com/v1/payments/"
 
             pago_call = requests.get(f"{url}{self.id_pago}", headers=header)
@@ -331,8 +292,7 @@ class MpClass():
             return JSONResponse(content={"Mensaje": str(e)}, status_code=400)
         
     def verificarToken(self):
-        #quizas aca posibilidad de buscar a que organizador pertenece la notificacion y usar ese token etc
-        hmac_obj = hmac.new(MP_CLIENT_SECRET.encode(), msg=self.manifest.encode(), digestmod=hashlib.sha256)
+        hmac_obj = hmac.new(self.client_secret.encode(), msg=self.manifest.encode(), digestmod=hashlib.sha256)
 
         sha = hmac_obj.hexdigest()
         if sha == self.hash:
@@ -342,8 +302,11 @@ class MpClass():
         
     def reenviarMail(self):
         try:
-            collection = self.db.ticket
-            fechacollec = self.db.fecha
+            collect_name_ticket = "ticket_test" if AMBIENTE == "DESARROLLO" else "ticket"
+            collect_name_fecha = "fecha_test" if AMBIENTE == "DESARROLLO" else "fecha"
+
+            collection = self.db[collect_name_ticket]
+            fechacollec = self.db[collect_name_fecha]
 
             query = { "external_reference": self.external_reference }
             pago_act = collection.find_one(query)

@@ -11,11 +11,11 @@ from routes.admin import router as AdminRouter
 from routes.ticket import router as TicketRouter
 from routes.fecha import router as FechaRouter
 from routes.videos import router as VideosRouter
+from routes.organizador import router as OrganizadorRouter
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from contextlib import asynccontextmanager
 
 async def lifespan(app: FastAPI):
     try:
@@ -65,15 +65,11 @@ app.add_middleware(
 
 token_listener = JWTBearer()
 
-# @app.on_event("startup")
-# async def start_database():
-#     await initiate_database()
-
-
 app.include_router(AdminRouter, tags=["Administrator"], prefix="/admin")
 app.include_router(TicketRouter,tags=["Tickets"],prefix="/tickets",)
 app.include_router(FechaRouter,tags=["Fechas"],prefix="/fechas",)
 app.include_router(VideosRouter,tags=["Videos"],prefix="/videos",)
+app.include_router(OrganizadorRouter,tags=["Organizadores"],prefix="/organizadores",)
 
 @app.get("/docs", include_in_schema=False)
 def custom_swagger_ui(credentials: HTTPBasicCredentials = Depends(verify_docs_user)):

@@ -5,6 +5,8 @@ from beanie import PydanticObjectId
 from models.admin import Admin
 from models.ticket import Ticket
 from models.fecha import Fecha
+from models.organizador import Organizador
+
 import uuid
 from schemas.ticket import TicketCreate
 from cruds.mp_crud import MpClass
@@ -12,6 +14,7 @@ from cruds.mp_crud import MpClass
 admin_collection = Admin
 ticket_collection = Ticket
 fecha_collection = Fecha
+org_collection = Organizador
 
 async def add_admin(new_admin: Admin) -> Admin:
     admin = await new_admin.create()
@@ -51,17 +54,25 @@ async def add_ticket(new_ticket: TicketCreate) -> Ticket:
 
     external_reference = str(uuid.uuid4())
 
+    importe = str(int(fecha.valor)) if new_ticket.doble and fecha.doble else str(int(fecha.valor) * new_ticket.cantidad)
+
     ticket = Ticket(
         **new_ticket.dict(),
-        importe_total=str(int(fecha.valor) * new_ticket.cantidad),
+        importe_total=importe,
         estado_pago="pending",
         external_reference = external_reference,
         id_preferencia = "", 
         id_pago = ""
     )
 
-    mp = MpClass(quantity=new_ticket.cantidad, valor_unidad=int(fecha.valor), fecha_desc=fecha.nombre_evento, external_reference=external_reference)
+    if new_ticket.doble and fecha.doble:
+        mp = MpClass(quantity=new_ticket.cantidad, valor_unidad=int(importe), fecha_desc=fecha.nombre_evento, external_reference=external_reference)
+    else:
+        mp = MpClass(quantity=new_ticket.cantidad, valor_unidad=int(fecha.valor), fecha_desc=fecha.nombre_evento, external_reference=external_reference)
+
     preferencia = mp.generarPreferencia()
+
+    print(preferencia)
 
     ticket.id_preferencia = preferencia["id"]
     ticket.id_pago = ""
@@ -102,4 +113,26 @@ async def update_ticket_data(id: PydanticObjectId, data: dict) -> Union[bool, Ti
     return False
 
 
+async def retrieve_organizadores() -> List[Organizador]:
+    orgs = await org_collection.all().to_list()
+    return orgs
 
+async def retrieve_organizador(id: PydanticObjectId) -> Ticket:
+    org = await org_collection.get(id)
+    if org:
+        return org
+    else:
+        return None
+
+async def add_organizador(new_org: Organizador) -> Organizador:
+    organizador = await new_org.create()
+    return organizador
+
+async def update_organizador_data(id: PydanticObjectId, data: dict) -> Union[bool, Organizador]:
+    des_body = {k: v for k, v in data.items() if v is not None}
+    update_query = {"$set": {field: value for field, value in des_body.items()}}
+    organizador = await org_collection.get(id)
+    if organizador:
+        await organizador.update(update_query)
+        return organizador
+    return False

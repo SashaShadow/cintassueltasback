@@ -2,7 +2,7 @@ from typing import Optional
 
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 import models as models
 
 class Settings(BaseSettings):
@@ -22,10 +22,10 @@ class Settings(BaseSettings):
     secret_key: str = "secret"
     algorithm: str = "HS256"
 
-    class Config:
-        env_file = ".env"
-        from_attributes = True
-
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="allow"
+    )
 
 async def initiate_database():
     client = AsyncIOMotorClient(Settings().DATABASE_URL)
