@@ -55,7 +55,7 @@ async def add_ticket(new_ticket: TicketCreate) -> Ticket:
     external_reference = str(uuid.uuid4())
 
     importe = str(int(fecha.valor)) if new_ticket.doble and fecha.doble else str(int(fecha.valor) * new_ticket.cantidad)
-
+    print(importe)
     ticket = Ticket(
         **new_ticket.dict(),
         importe_total=importe,
@@ -66,7 +66,7 @@ async def add_ticket(new_ticket: TicketCreate) -> Ticket:
     )
 
     if new_ticket.doble and fecha.doble:
-        mp = MpClass(quantity=new_ticket.cantidad, valor_unidad=int(importe), fecha_desc=fecha.nombre_evento, external_reference=external_reference)
+        mp = MpClass(quantity=1, valor_unidad=int(importe), fecha_desc=fecha.nombre_evento, external_reference=external_reference)
     else:
         mp = MpClass(quantity=new_ticket.cantidad, valor_unidad=int(fecha.valor), fecha_desc=fecha.nombre_evento, external_reference=external_reference)
 
