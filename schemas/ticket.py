@@ -1,12 +1,17 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, Any
+from local_config import *
 
+collect_name = "ticket_test" if AMBIENTE == "DESARROLLO" else "ticket"
+
+print(collect_name)
 class TicketCreate(BaseModel):
     nombre: str
     email: EmailStr
     fecha: str
     cantidad: int
     id_fecha: str
+    doble: bool
 
     class Settings:
         name = "tickets"
@@ -19,7 +24,7 @@ class UpdateTicketModel(BaseModel):
     gpa: Optional[float]
 
     class Collection:
-        name = "ticket"
+        name = collect_name
 
     class Config:
         json_schema_extra = {

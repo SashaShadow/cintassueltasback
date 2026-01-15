@@ -2,7 +2,9 @@ from typing import Optional, Any
 
 from beanie import Document
 from pydantic import BaseModel
+from local_config import *
 
+collect_name = "fecha_test" if AMBIENTE == "DESARROLLO" else "fecha"
 
 class Fecha(Document):
     valor: str
@@ -14,6 +16,7 @@ class Fecha(Document):
     descripcion: str
     fecha: str
     hora: str
+    doble: bool
 
     class Config:
         json_schema_extra = {
@@ -27,8 +30,9 @@ class Fecha(Document):
                 "descripcion": "festival numero 6 de CS",
                 "fecha": "7/6/2025",
                 "hora": "20:00",
+                "doble": False
             }
         }
 
     class Settings:
-        name = "fecha"
+        name = collect_name
